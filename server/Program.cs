@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -37,18 +38,54 @@ class TcpServer
         // Get the stream to read/write data
         NetworkStream stream = client.GetStream();
 
+        Thread clientThreadListen = new Thread(HandleClientListen);
+        clientThreadListen.Start(client);
+
+        //// Read data from the client
+        //byte[] buffer = new byte[256];
+        //int bytesRead = stream.Read(buffer, 0, buffer.Length);
+        //string receivedMessage = Encoding.ASCII.GetString(buffer, 0, bytesRead);
+        //Console.WriteLine("Received: " + receivedMessage);
+
+        Thread clientThreadTalk = new Thread(HandleClientTalk);
+        clientThreadTalk.Start(client);
+
+        //// Send a response to the client
+        //string responseMessage = "Hello from server!";
+        //byte[] responseBytes = Encoding.ASCII.GetBytes(responseMessage);
+        //stream.Write(responseBytes, 0, responseBytes.Length);
+
+        clientThreadListen.Join();
+        clientThreadTalk.Join();
+
+        // Close the connection
+        client.Close();
+    }
+
+
+    static void HandleClientListen(object obj)
+    {
+        TcpClient client = (TcpClient)obj;
+
+        // Get the stream to read/write data
+        NetworkStream stream = client.GetStream();
+
         // Read data from the client
         byte[] buffer = new byte[256];
         int bytesRead = stream.Read(buffer, 0, buffer.Length);
         string receivedMessage = Encoding.ASCII.GetString(buffer, 0, bytesRead);
         Console.WriteLine("Received: " + receivedMessage);
+    }
+    private static void HandleClientTalk(object obj)
+    {
+        TcpClient client = (TcpClient)obj;
+
+        // Get the stream to read/write data
+        NetworkStream stream = client.GetStream();
 
         // Send a response to the client
         string responseMessage = "Hello from server!";
         byte[] responseBytes = Encoding.ASCII.GetBytes(responseMessage);
         stream.Write(responseBytes, 0, responseBytes.Length);
-
-        // Close the connection
-        client.Close();
     }
 }
