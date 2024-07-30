@@ -76,7 +76,7 @@ class TcpServer
         string receivedMessage = Encoding.ASCII.GetString(buffer, 0, bytesRead);
         Console.WriteLine("Received: " + receivedMessage);
     }
-    private static void HandleClientTalk(object obj)
+    static void HandleClientTalk(object obj)
     {
         TcpClient client = (TcpClient)obj;
 
