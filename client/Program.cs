@@ -71,9 +71,15 @@ class TcpClientProgram
         // Get the stream to read/write data
         NetworkStream stream = client.GetStream();
 
-        // Send a message to the server
-        string message = "Hello from client!";
-        byte[] data = Encoding.ASCII.GetBytes(message);
-        stream.Write(data, 0, data.Length);
+        while (true)
+        {
+            string message;
+            message = Console.ReadKey(true).KeyChar.ToString().ToUpper();
+
+            // Send a message to the server
+            byte[] data = Encoding.ASCII.GetBytes(message);
+            stream.Write(data, 0, data.Length);
+
+        }
     }
 }

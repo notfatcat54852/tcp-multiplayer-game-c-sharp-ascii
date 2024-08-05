@@ -94,7 +94,7 @@ class TcpServer
                 string receivedMessage = Encoding.ASCII.GetString(buffer, 0, bytesRead);
                 Console.WriteLine("Received: " + receivedMessage);
 
-                BroadcastMessage(receivedMessage);
+                //BroadcastMessage(receivedMessage);
             }
         }
         catch (Exception ex)
