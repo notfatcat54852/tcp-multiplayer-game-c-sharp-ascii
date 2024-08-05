@@ -54,12 +54,15 @@ class TcpClientProgram
         TcpClient client = (TcpClient)obj;
         // Get the stream to read/write data
         NetworkStream stream = client.GetStream();
+        while (true)
+        {
+            // Read the response from the server
+            byte[] buffer = new byte[256];
+            int bytesRead = stream.Read(buffer, 0, buffer.Length);
+            string responseMessage = Encoding.ASCII.GetString(buffer, 0, bytesRead);
+            Console.WriteLine("Received: " + responseMessage);
 
-        // Read the response from the server
-        byte[] buffer = new byte[256];
-        int bytesRead = stream.Read(buffer, 0, buffer.Length);
-        string responseMessage = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-        Console.WriteLine("Received: " + responseMessage);
+        }
     }
 
     static void TalkToServer(object obj)
