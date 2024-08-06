@@ -13,12 +13,16 @@ class TcpServer
         public TcpClient Client { get; set; }
         public int X { get; set; }
         public int Y { get; set; }
+        public int ID { get; private set; }
+
+        private static int nextId = 1; // Static counter for client IDs
 
         public ClientInfo(TcpClient client, int x, int y)
         {
             Client = client;
             X = x;
             Y = y;
+            ID = nextId++;
         }
     }
 
@@ -26,6 +30,7 @@ class TcpServer
     private static List<ClientInfo> clients = new List<ClientInfo>();
     private static object clientsLock = new object();
     private static bool isBroadcastLoopRunning = false;
+    private static List<ClientInfo> disconnectedClients = new List<ClientInfo>();
 
     static void Main()
     {
@@ -116,10 +121,28 @@ class TcpServer
             {
                 string receivedMessage = Encoding.ASCII.GetString(buffer, 0, bytesRead);
                 Console.WriteLine($"Received from {clientEndPoint}: {receivedMessage}");
-                Console.WriteLine($"posx: {clientInfo.X} posy: {clientInfo.Y}");
+                Console.WriteLine($"{clientInfo.ID}posx: {clientInfo.X} posy: {clientInfo.Y}");
 
                 // BroadcastMessage(receivedMessage);
-                // update client position
+                // Handle movement commands
+                switch (receivedMessage)
+                {
+                    case "W":
+                        clientInfo.Y += 1;
+                        break;
+                    case "A":
+                        clientInfo.X -= 1;
+                        break;
+                    case "S":
+                        clientInfo.Y -= 1;
+                        break;
+                    case "D":
+                        clientInfo.X += 1;
+                        break;
+                    default:
+                        Console.WriteLine($"Unknown command from {clientEndPoint}: {receivedMessage}");
+                        break;
+                }
             }
         }
         catch (Exception ex)
@@ -148,12 +171,23 @@ class TcpServer
 
     static void BroadcastLoopTest()
     {
-        int count = 0;
+        //int count = 0;
+        //while (true)
+        //{
+        //    count++;
+        //    BroadcastMessage("test" + count);
+        //    Thread.Sleep(1000);
+        //}
         while (true)
         {
-            count++;
-            BroadcastMessage("test" + count);
+            string message = "";
+            foreach (var clientInfo in clients)
+            {
+                message += "p" + clientInfo.ID + " " + clientInfo.X + " " + clientInfo.Y + " ";
+            }
+            BroadcastMessage(message);
             Thread.Sleep(1000);
+
         }
     }
 
@@ -162,7 +196,6 @@ class TcpServer
         lock (clientsLock)
         {
             byte[] responseBytes = Encoding.ASCII.GetBytes(message);
-            List<ClientInfo> disconnectedClients = new List<ClientInfo>();
 
             foreach (var clientInfo in clients)
             {
