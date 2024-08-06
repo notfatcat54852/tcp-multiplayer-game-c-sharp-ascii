@@ -7,7 +7,23 @@ using System.Threading;
 
 class TcpServer
 {
-    private static List<TcpClient> clients = new List<TcpClient>();
+    // Define a class to hold client information
+    private class ClientInfo
+    {
+        public TcpClient Client { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
+
+        public ClientInfo(TcpClient client, int x, int y)
+        {
+            Client = client;
+            X = x;
+            Y = y;
+        }
+    }
+
+    // Updated list to hold ClientInfo objects
+    private static List<ClientInfo> clients = new List<ClientInfo>();
     private static object clientsLock = new object();
     private static bool isBroadcastLoopRunning = false;
 
@@ -26,13 +42,16 @@ class TcpServer
             TcpClient client = server.AcceptTcpClient();
             Console.WriteLine("Client connected!");
 
+            // Assign default positions for this example (0, 0)
+            var clientInfo = new ClientInfo(client, 0, 0);
+
             lock (clientsLock)
             {
-                clients.Add(client);
+                clients.Add(clientInfo);
             }
 
             Thread clientThread = new Thread(HandleClient);
-            clientThread.Start(client);
+            clientThread.Start(clientInfo);
         }
     }
 
@@ -51,16 +70,16 @@ class TcpServer
 
     static void HandleClient(object obj)
     {
-        TcpClient client = (TcpClient)obj;
-        NetworkStream stream = client.GetStream();
+        ClientInfo clientInfo = (ClientInfo)obj;
+        NetworkStream stream = clientInfo.Client.GetStream();
 
         try
         {
             Thread clientThreadListen = new Thread(HandleClientListen);
-            clientThreadListen.Start(client);
+            clientThreadListen.Start(clientInfo);
 
             Thread clientThreadTalk = new Thread(HandleClientTalk);
-            clientThreadTalk.Start(client);
+            clientThreadTalk.Start(clientInfo);
 
             clientThreadListen.Join();
             clientThreadTalk.Join();
@@ -73,16 +92,17 @@ class TcpServer
         {
             lock (clientsLock)
             {
-                clients.Remove(client);
+                clients.Remove(clientInfo);
             }
-            client.Close();
+            clientInfo.Client.Close();
             Console.WriteLine("Client disconnected.");
         }
     }
 
     static void HandleClientListen(object obj)
     {
-        TcpClient client = (TcpClient)obj;
+        ClientInfo clientInfo = (ClientInfo)obj;
+        TcpClient client = clientInfo.Client;
         NetworkStream stream = client.GetStream();
 
         // Get client IP address and port
@@ -96,8 +116,10 @@ class TcpServer
             {
                 string receivedMessage = Encoding.ASCII.GetString(buffer, 0, bytesRead);
                 Console.WriteLine($"Received from {clientEndPoint}: {receivedMessage}");
+                Console.WriteLine($"posx: {clientInfo.X} posy: {clientInfo.Y}");
 
-                //BroadcastMessage(receivedMessage);
+                // BroadcastMessage(receivedMessage);
+                // update client position
             }
         }
         catch (Exception ex)
@@ -108,7 +130,8 @@ class TcpServer
 
     static void HandleClientTalk(object obj)
     {
-        TcpClient client = (TcpClient)obj;
+        ClientInfo clientInfo = (ClientInfo)obj;
+        TcpClient client = clientInfo.Client;
         NetworkStream stream = client.GetStream();
 
         try
@@ -139,25 +162,25 @@ class TcpServer
         lock (clientsLock)
         {
             byte[] responseBytes = Encoding.ASCII.GetBytes(message);
-            List<TcpClient> disconnectedClients = new List<TcpClient>();
+            List<ClientInfo> disconnectedClients = new List<ClientInfo>();
 
-            foreach (var client in clients)
+            foreach (var clientInfo in clients)
             {
                 try
                 {
-                    NetworkStream stream = client.GetStream();
+                    NetworkStream stream = clientInfo.Client.GetStream();
                     stream.Write(responseBytes, 0, responseBytes.Length);
                 }
                 catch (Exception)
                 {
-                    disconnectedClients.Add(client);
+                    disconnectedClients.Add(clientInfo);
                 }
             }
 
-            foreach (var client in disconnectedClients)
+            foreach (var clientInfo in disconnectedClients)
             {
-                clients.Remove(client);
-                client.Close();
+                clients.Remove(clientInfo);
+                clientInfo.Client.Close();
                 Console.WriteLine("Removed disconnected client.");
             }
         }
