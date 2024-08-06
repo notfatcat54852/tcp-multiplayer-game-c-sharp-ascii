@@ -85,6 +85,9 @@ class TcpServer
         TcpClient client = (TcpClient)obj;
         NetworkStream stream = client.GetStream();
 
+        // Get client IP address and port
+        string clientEndPoint = client.Client.RemoteEndPoint.ToString();
+
         try
         {
             byte[] buffer = new byte[256];
@@ -92,14 +95,14 @@ class TcpServer
             while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) != 0)
             {
                 string receivedMessage = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                Console.WriteLine("Received: " + receivedMessage);
+                Console.WriteLine($"Received from {clientEndPoint}: {receivedMessage}");
 
                 //BroadcastMessage(receivedMessage);
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Listen error: " + ex.Message);
+            Console.WriteLine($"Listen error from {clientEndPoint}: " + ex.Message);
         }
     }
 
