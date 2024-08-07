@@ -128,13 +128,13 @@ class TcpServer
                 switch (receivedMessage)
                 {
                     case "W":
-                        clientInfo.Y += 1;
+                        clientInfo.Y -= 1;
                         break;
                     case "A":
                         clientInfo.X -= 1;
                         break;
                     case "S":
-                        clientInfo.Y -= 1;
+                        clientInfo.Y += 1;
                         break;
                     case "D":
                         clientInfo.X += 1;
