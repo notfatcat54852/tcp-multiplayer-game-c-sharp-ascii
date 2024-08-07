@@ -171,13 +171,7 @@ class TcpServer
 
     static void BroadcastLoopTest()
     {
-        //int count = 0;
-        //while (true)
-        //{
-        //    count++;
-        //    BroadcastMessage("test" + count);
-        //    Thread.Sleep(1000);
-        //}
+
         while (true)
         {
             string message = "";

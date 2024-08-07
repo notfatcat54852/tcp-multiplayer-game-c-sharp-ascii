@@ -50,21 +50,28 @@ class TcpClientProgram
         string[] x = input.Split(' ');
         //Received: p1 0 0
         //3 and 5
-        Console.WriteLine("player count: " + x.Length/3);
-        for (int h = 0; h < x.Length/3; h++)
+        Console.WriteLine("player count: " + x.Length / 3);
+
+        bool temp;
+
+        for (int i = 0; i < 10; i++)
         {
-            for (int i = 0; i < 10; i++)
+            for (int j = 0; j < 10; j++)
             {
-                for (int j = 0; j < 10; j++)
+                temp = false;
+                for (int h = 0; h < x.Length / 3; h++)
                 {
-                    if (x[1 + (3*h)] == j.ToString() && x[2 + (3*h)] == i.ToString())
-                        Console.Write("#");
-                    else
-                        Console.Write("_");
+                    if (x[1 + (3 * h)] == j.ToString() && x[2 + (3 * h)] == i.ToString())
+                        temp = true;
                 }
-                Console.WriteLine();
+                if (temp)
+                    Console.Write("#");
+                else
+                    Console.Write("_");
             }
+                Console.WriteLine();
         }
+        
     }
         static void ListenToServer(object obj)
     {
